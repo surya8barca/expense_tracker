@@ -33,7 +33,9 @@ class MyExpenseData extends ChangeNotifier {
   Future<void> init() async {
     _expenses = _expensesBox.values.toList();
     _filteredExpenses = List.from(_expenses);
-    _filters.selectedDateFilter = 'This Month';
+    if (!_filteredExpenses.isEmpty) {
+      _filters.selectedDateFilter = 'This Month';
+    }
     notifyListeners();
 
     _expensesBox.listenable().addListener(() {

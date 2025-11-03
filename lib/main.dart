@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.indigo,
         ),
       ),
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.light,
       home: const Home(),
     );
   }
