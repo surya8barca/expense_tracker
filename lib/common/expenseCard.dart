@@ -1,4 +1,5 @@
 import 'package:expense_tracker/add_expense.dart';
+import 'package:expense_tracker/common/displayAlert.dart';
 import 'package:expense_tracker/services/expense_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -70,6 +71,10 @@ class ExpenseCard extends StatelessWidget {
               onPressed: () {
                 Navigator.pop(context);
                 onDelete();
+                AlertHelper.showAlert(
+                    context: context,
+                    title: 'Success!',
+                    message: 'Expense Deleted!!');
               },
               child: const Text(
                 'Delete',

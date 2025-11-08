@@ -45,6 +45,7 @@ dependencies:
   provider:
   file_picker: 
   csv:
+  permission_handler:
 
 dev_dependencies:
   flutter_test:

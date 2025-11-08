@@ -1,4 +1,5 @@
 import 'package:expense_tracker/common/custom_appbar.dart';
+import 'package:expense_tracker/common/displayAlert.dart';
 import 'package:expense_tracker/constants/constants.dart';
 import 'package:expense_tracker/models/expense_model.dart';
 import 'package:expense_tracker/services/expense_service.dart';
@@ -88,38 +89,6 @@ class _ExpenseAddUpdateState extends State<ExpenseAddUpdate> {
     } else {
       return false;
     }
-  }
-
-  void showAlert(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white, // dialog background
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20), // rounded corners
-        ),
-        title: const Center(
-          child: Text(
-            'Caution!',
-            style: TextStyle(
-              color: Colors.redAccent,
-              fontSize: 25,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        content: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 16,
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-      ),
-    );
   }
 
   @override
@@ -370,6 +339,11 @@ class _ExpenseAddUpdateState extends State<ExpenseAddUpdate> {
                           expenseTime: timeSelected.format(context),
                           expenseCategory: categorySelected ?? 'Uncategorized');
                       expenseService.addExpense(newExpense);
+                      Navigator.pop(context);
+                      AlertHelper.showAlert(
+                          context: context,
+                          title: 'Success!',
+                          message: 'Expense Added!!');
                     } else {
                       widget.existingData.expenseDesc = descController.text;
                       widget.existingData.expenseAmount =
@@ -383,11 +357,18 @@ class _ExpenseAddUpdateState extends State<ExpenseAddUpdate> {
                       widget.existingData.expenseCategory =
                           categorySelected ?? 'Uncategorized';
                       expenseService.updateExpense(widget.existingData);
-                    }
 
-                    Navigator.pop(context);
+                      Navigator.pop(context);
+                      AlertHelper.showAlert(
+                          context: context,
+                          title: 'Success!',
+                          message: 'Expense Updated!!');
+                    }
                   } else {
-                    showAlert(context, 'Amount and Description are mandatory');
+                    AlertHelper.showAlert(
+                        context: context,
+                        title: 'Caution!',
+                        message: 'Amount and Description are mandatory!!');
                   }
                 },
                 style: ElevatedButton.styleFrom(

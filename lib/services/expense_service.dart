@@ -6,6 +6,8 @@ import 'package:expense_tracker/models/filters.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class MyExpenseData extends ChangeNotifier {
   late Box<ExpenseModel> _expensesBox = Hive.box('expenses');
@@ -145,7 +147,22 @@ class MyExpenseData extends ChangeNotifier {
     _filteredExpenses.sort((a, b) {
       final dateA = _formatter.parse(a.expenseDate);
       final dateB = _formatter.parse(b.expenseDate);
-      return ascending ? dateA.compareTo(dateB) : dateB.compareTo(dateA);
+
+      // Parse 12-hour time with AM/PM support
+      final timeFormatter = DateFormat('hh:mm a');
+      final timeA = timeFormatter.parse(a.expenseTime);
+      final timeB = timeFormatter.parse(b.expenseTime);
+
+      // Combine date + time into one DateTime
+      final dateTimeA = DateTime(
+          dateA.year, dateA.month, dateA.day, timeA.hour, timeA.minute);
+      final dateTimeB = DateTime(
+          dateB.year, dateB.month, dateB.day, timeB.hour, timeB.minute);
+
+      // Sort so latest (newest) comes on top by default
+      return ascending
+          ? dateTimeA.compareTo(dateTimeB)
+          : dateTimeB.compareTo(dateTimeA);
     });
   }
 
@@ -168,5 +185,73 @@ class MyExpenseData extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<bool> exportData() async {
+    bool successFullyExported = false;
+    try {
+      if (Platform.isAndroid) {
+        if (await Permission.manageExternalStorage.isGranted ||
+            await Permission.storage.isGranted) {
+        } else {
+          if (Platform.operatingSystemVersion.contains("Android 13") ||
+              Platform.operatingSystemVersion.contains("Android 14")) {
+            final photos = await Permission.photos.request();
+            final videos = await Permission.videos.request();
+            final audio = await Permission.audio.request();
+            if (!photos.isGranted && !videos.isGranted && !audio.isGranted) {
+              throw Exception("Storage permission not granted");
+            }
+          } else {
+            final status = await Permission.storage.request();
+            if (!status.isGranted) {
+              throw Exception("Storage permission not granted");
+            }
+          }
+        }
+      }
+      final status = await Permission.storage.request();
+      if (!status.isGranted) {
+        throw Exception("Storage permission not granted");
+      }
+
+      final List<List<dynamic>> rows = [
+        ['Date', 'Time', 'Remark', 'Category', 'Mode', 'Cash In', 'Cash Out']
+      ];
+
+      for (var expense in _expensesBox.values) {
+        final isCashIn = expense.expenseType.toLowerCase() == 'in';
+
+        rows.add([
+          expense.expenseDate,
+          expense.expenseTime,
+          expense.expenseDesc,
+          expense.expenseCategory,
+          expense.expensePaymentMethod,
+          isCashIn ? expense.expenseAmount : '',
+          isCashIn ? '' : expense.expenseAmount,
+        ]);
+      }
+
+      final csvData = const ListToCsvConverter().convert(rows);
+
+      Directory? downloadsDir;
+
+      if (Platform.isAndroid) {
+        downloadsDir = Directory('/storage/emulated/0/Download');
+      } else {
+        downloadsDir = await getApplicationDocumentsDirectory();
+      }
+
+      final filePath =
+          '${downloadsDir.path}/expenses_${DateTime.now().millisecondsSinceEpoch}.csv';
+      final file = File(filePath);
+
+      await file.writeAsString(csvData);
+      successFullyExported = true;
+    } catch (e) {
+      print('❌ Error exporting CSV: $e');
+    }
+    return successFullyExported;
   }
 }

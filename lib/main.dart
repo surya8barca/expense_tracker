@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:expense_tracker/home.dart';
 import 'package:expense_tracker/models/expense_model.dart';
 import 'package:expense_tracker/services/expense_service.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -16,9 +19,25 @@ void main() async {
   await Hive.openBox<ExpenseModel>('expenses');
   final expenseService = MyExpenseData();
   await expenseService.init();
+  if (Platform.isAndroid) {
+    await _requestStoragePermission();
+  }
 
   runApp(ChangeNotifierProvider.value(
       value: expenseService, child: const MyApp()));
+}
+
+Future<void> _requestStoragePermission() async {
+  // For Android 11+ and higher
+  var status = await Permission.manageExternalStorage.status;
+
+  if (!status.isGranted) {
+    final result = await Permission.manageExternalStorage.request();
+    if (!result.isGranted) {
+      // Open app settings if user denied
+      await openAppSettings();
+    }
+  }
 }
 
 class MyApp extends StatelessWidget {

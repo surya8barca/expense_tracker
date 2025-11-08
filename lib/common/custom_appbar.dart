@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:expense_tracker/common/displayAlert.dart';
 import 'package:expense_tracker/services/expense_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -101,38 +102,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    void showAlert(BuildContext context, String message) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          backgroundColor: Colors.white, // dialog background
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20), // rounded corners
-          ),
-          title: const Center(
-            child: Text(
-              'Completed!',
-              style: TextStyle(
-                color: Colors.blue,
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          content: Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.black87,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          actionsAlignment: MainAxisAlignment.center,
-        ),
-      );
-    }
-
     return AppBar(
       elevation: 4,
       actions: title == 'home'
@@ -152,10 +121,19 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     if (result != null && result.files.single.path != null) {
                       File file = File(result.files.single.path!);
                       await expenseService.importData(file);
-                      showAlert(context, 'Data is imported!!');
+                      AlertHelper.showAlert(
+                          context: context,
+                          title: 'Completed!',
+                          message: 'Data is imported!!');
                     }
                   } else if (value == 'export') {
-                    print('Delete selected');
+                    final success = await expenseService.exportData();
+                    AlertHelper.showAlert(
+                        context: context,
+                        title: success ? 'Completed!' : 'Failed',
+                        message: success
+                            ? 'Data is exported!!'
+                            : 'Error while exporting data!!');
                   } else if (value == 'deleteAll') {
                     showDeleteConfirmationDialog(context, () async {
                       await expenseService.deleteAll();
