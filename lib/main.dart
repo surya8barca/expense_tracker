@@ -23,18 +23,20 @@ void main() async {
     await _requestStoragePermission();
   }
 
-  runApp(ChangeNotifierProvider.value(
-      value: expenseService, child: const MyApp()));
+  runApp(
+    ChangeNotifierProvider<MyExpenseData>.value(
+      value: expenseService,
+      child: const MyApp(),
+    ),
+  );
 }
 
 Future<void> _requestStoragePermission() async {
-  // For Android 11+ and higher
   var status = await Permission.manageExternalStorage.status;
 
   if (!status.isGranted) {
     final result = await Permission.manageExternalStorage.request();
     if (!result.isGranted) {
-      // Open app settings if user denied
       await openAppSettings();
     }
   }

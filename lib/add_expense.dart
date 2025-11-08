@@ -178,6 +178,7 @@ class _ExpenseAddUpdateState extends State<ExpenseAddUpdate> {
                     ),
                   ),
                   TextFormField(
+                    autofocus: true,
                     controller: amountController,
                     keyboardType: TextInputType.number,
                     style: TextStyle(

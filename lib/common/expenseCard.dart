@@ -105,7 +105,8 @@ class ExpenseCard extends StatelessWidget {
     return ListView.builder(
         itemCount: expenseService.filteredExpenses.length,
         itemBuilder: (context, index) {
-          final expense = expenseService.filteredExpenses[index];
+          final expense =
+              context.watch<MyExpenseData>().filteredExpenses[index];
           final isIncome = expense.expenseType == 'in';
           final color = isIncome ? Colors.green : Colors.red;
           bool showDateHeader = index == 0 ||

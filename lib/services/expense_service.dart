@@ -34,43 +34,46 @@ class MyExpenseData extends ChangeNotifier {
 
   Future<void> init() async {
     _expenses = _expensesBox.values.toList();
-    _filteredExpenses = List.from(_expenses);
-    if (!_filteredExpenses.isEmpty) {
+    if (_filteredExpenses.isEmpty) {
       _filters.selectedDateFilter = 'This Month';
     }
+    _filteredExpenses = applyFilter(_filters);
     notifyListeners();
 
     _expensesBox.listenable().addListener(() {
       _expenses = _expensesBox.values.toList();
-      _filteredExpenses = List.from(_expenses);
-      if (_filters.hasAnyFilter) {
-        applyFilter(_filters);
-      }
+      _filteredExpenses = applyFilter(_filters);
       notifyListeners();
     });
   }
 
   Future<void> addExpense(ExpenseModel expense) async {
     await _expensesBox.add(expense);
-    notifyListeners();
+    _refreshFilteredExpenses();
   }
 
   Future<void> deleteExpense(ExpenseModel expense) async {
     await expense.delete();
-    notifyListeners();
+    _refreshFilteredExpenses();
   }
 
   Future<void> updateExpense(ExpenseModel expense) async {
     await expense.save();
-    notifyListeners();
+    _refreshFilteredExpenses();
   }
 
   Future<void> deleteAll() async {
     await _expensesBox.clear();
+    _refreshFilteredExpenses();
+  }
+
+  void _refreshFilteredExpenses() {
+    _expenses = _expensesBox.values.toList();
+    _filteredExpenses = applyFilter(_filters);
     notifyListeners();
   }
 
-  void applyFilter(Filters filters) {
+  List<ExpenseModel> applyFilter(Filters filters) {
     print("total expense:" + _expenses.length.toString());
     lastFilteredExpenses = _filteredExpenses;
     _filteredExpenses = _expenses.where((e) {
@@ -93,9 +96,7 @@ class MyExpenseData extends ChangeNotifier {
           matchesExpenseType &&
           matchesPaymentType;
     }).toList();
-
-    print("before filter:" + _filteredExpenses.length.toString());
-    notifyListeners();
+    return _filteredExpenses;
   }
 
   bool timelineFilterApply(String timeline, ExpenseModel expense) {
