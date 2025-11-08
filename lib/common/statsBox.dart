@@ -1,3 +1,4 @@
+import 'package:expense_tracker/common/expense_dashboard.dart';
 import 'package:flutter/material.dart';
 
 class StatsBox extends StatelessWidget {
@@ -91,7 +92,17 @@ class StatsBox extends StatelessWidget {
                   ),
                 )
               ],
-            )
+            ),
+            Divider(),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ExpenseDashboard()),
+                );
+              },
+              child: const Text("View Analytics"),
+            ),
           ],
         ),
       ),

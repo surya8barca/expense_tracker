@@ -255,4 +255,52 @@ class MyExpenseData extends ChangeNotifier {
     }
     return successFullyExported;
   }
+
+  Map<String, double> get expensesByCategory {
+    final Map<String, double> data = {};
+    for (var expense in _filteredExpenses) {
+      if (expense.expenseType == "Cash Out") {
+        data[expense.expenseCategory] =
+            (data[expense.expenseCategory] ?? 0) + expense.expenseAmount;
+      }
+    }
+    return data;
+  }
+
+  Map<String, double> get expensesByPaymentMethod {
+    final Map<String, double> data = {};
+    for (var expense in _filteredExpenses) {
+      if (expense.expenseType == "out") {
+        data[expense.expensePaymentMethod] =
+            (data[expense.expensePaymentMethod] ?? 0) + expense.expenseAmount;
+      }
+    }
+    return data;
+  }
+
+  Map<String, double> get dailyExpenses {
+    final Map<String, double> data = {};
+    final now = DateTime.now();
+
+    for (var expense in _filteredExpenses) {
+      if (expense.expenseType == "out") {
+        final date = _formatter.parse(expense.expenseDate);
+        if (date.month == now.month && date.year == now.year) {
+          final key = "${date.day}";
+          data[key] = (data[key] ?? 0) + expense.expenseAmount;
+        }
+      }
+    }
+
+    return Map.fromEntries(data.entries.toList()
+      ..sort((a, b) => int.parse(a.key).compareTo(int.parse(b.key))));
+  }
+
+  double get totalCashIn => _filteredExpenses
+      .where((e) => e.expenseType == "in")
+      .fold(0, (sum, e) => sum + e.expenseAmount);
+
+  double get totalCashOut => _filteredExpenses
+      .where((e) => e.expenseType == "out")
+      .fold(0, (sum, e) => sum + e.expenseAmount);
 }
